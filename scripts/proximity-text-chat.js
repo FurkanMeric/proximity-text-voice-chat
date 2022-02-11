@@ -111,6 +111,34 @@ Hooks.on("chatCommandsReady", chatCommands => {
         description: game.i18n.localize(`${moduleName}.screamDesc`)
     });
     chatCommands.registerCommand(screamCommand);
+
+    const telepathyCommand = chatCommands.createCommandFromData({
+        commandKey: "/telepathy",
+        invokeOnCommand: (chatLog, messageText, chatData) => {
+            const target = messageText.split(" ")[0];
+            const user = game.users.getName(target);
+            if (user) {
+                Hooks.once("preCreateChatMessage", (message, data, options, userID) => {
+                    // Re-create hearMap with target player v = true
+                    const oldHearMap = message.data.flags[moduleName]?.users;
+                    if (!oldHearMap) return;
+                    oldHearMap[user.id] = true;
+                    message.data.update({
+                        [`flags.${moduleName}`]: {
+                            "users": oldHearMap
+                        },
+                        type: 4,
+                        whisper: [user.id]
+                    });
+                });
+            }
+            messageText = `<i>` + messageText + `</i>`;
+            return messageText;
+        },
+        shouldDisplayToChat: true,
+        description: game.i18n.localize(`${moduleName}.telepathyDesc`)
+    });
+    chatCommands.registerCommand(telepathyCommand);
 });
 
 function createHearMap(speaker, distanceCanHear, messageText) {
