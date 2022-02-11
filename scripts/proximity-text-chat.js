@@ -60,6 +60,18 @@ Hooks.once("init", () => {
 Hooks.once("setup", () => {
 });
 
+Hooks.once("ready", () => {
+    // ViNo compatibility
+    const vinoCreateChatMessage = Hooks._hooks.createChatMessage.find(f => f.name === "handleCreateChatMessage");
+    Hooks.off("createChatMessage", vinoCreateChatMessage);
+    Hooks.on("createChatMessage", message => {
+        let inProximity = true;
+        const hearMap = message.getFlag(moduleName, "users");
+        if (hearMap) inProximity = hearMap[game.user.id] || game.user.isGM;
+        if (inProximity) return vinoCreateChatMessage.call(this, message);
+    });
+});
+
 Hooks.on("preCreateChatMessage", (message, data, options, userID) => {
     let speaker = canvas.tokens.get(message.data.speaker.token);
     if (message.data.type === 4) speaker = canvas.tokens.controlled[0];
