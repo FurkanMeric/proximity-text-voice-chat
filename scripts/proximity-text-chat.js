@@ -25,16 +25,6 @@ Hooks.once("init", () => {
             step: 5
         }
     });
-
-    // Optionally hide OOC messages that are not in Proximity Distance
-    game.settings.register(moduleName, "hideOOC", {
-        name: `${moduleName}.settings.hideOOC.name`,
-        hint: "",
-        scope: "world",
-        config: false,
-        type: Boolean,
-        default: false
-    });
     
     // Set up socket for handing chat bubble creation
     socket.on(`module.${moduleName}`, data => {
@@ -58,8 +48,7 @@ Hooks.once("setup", () => {
 Hooks.on("preCreateChatMessage", (message, data, options, userID) => {
     let speaker = canvas.tokens.get(message.data.speaker.token);
     if (message.data.type === 4) speaker = canvas.tokens.controlled[0];
-    const processOOC = message.data.type === 1 && game.settings.get(moduleName, "hideOOC");
-    if (!speaker || processOOC) return;
+    if (!speaker) return;
 
     // Save hearMap in chat message flags
     const hearMap = createHearMap(speaker, game.settings.get(moduleName, "proximityDistance"), message.data.content);
