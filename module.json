@@ -22,5 +22,8 @@
             "manifest": "https://github.com/League-of-Foundry-Developers/Chat-Commands-Lib/releases/download/1.4.0/module.json"
         }
     ],
-    "socket": true
+    "socket": true,
+    "url": "https://github.com/jessev14/proximity-text-chat",
+    "manifest": "https://github.com/jessev14/proximity-text-chat/releases/latest/download/module.json",
+    "download": "https://github.com/jessev14/proximity-text-chat/releases/download/1.0.0/PTC.zip"
 }
