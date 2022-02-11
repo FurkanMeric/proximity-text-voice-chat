@@ -1,0 +1,26 @@
+{
+    "name": "proximity-text-chat",
+    "title": "Proximity Text Chat",
+    "description": "",
+    "author": "enso#0361",
+    "version": "1.0.0",
+    "minimumCoreVersion": "9",
+    "compatibleCoreVersion": "9",
+    "esmodules": [
+        "./scripts/proximity-text-chat.js"
+    ],
+    "languages": [
+        {
+            "lang": "en",
+            "name": "English",
+            "path": "./lang/en.json"
+        }
+    ],
+    "dependencies": [
+        {
+            "name": "_chatcommands",
+            "manifest": "https://github.com/League-of-Foundry-Developers/Chat-Commands-Lib/releases/download/1.4.0/module.json"
+        }
+    ],
+    "socket": true
+}
