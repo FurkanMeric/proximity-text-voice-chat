@@ -25,7 +25,22 @@ Hooks.once("init", () => {
             step: 5
         }
     });
-    
+
+    // Set grid distance for tokens that can hear /scream commands
+    game.settings.register(moduleName, "screamDistance", {
+        name: `${moduleName}.settings.screamDistance.name`,
+        hint: `${moduleName}.settings.screamDistance.hint`,
+        scope: "world",
+        config: true,
+        type: Number,
+        default: 60,
+        range: {
+            min: 5,
+            max: 200,
+            step: 5
+        }
+    });
+
     // Set up socket for handing chat bubble creation
     socket.on(`module.${moduleName}`, data => {
         const { action } = data;
@@ -73,6 +88,29 @@ Hooks.on("renderChatMessage", (message, html, data) => {
     }
 
     html.hide();
+});
+
+// Register Chat Commands
+Hooks.on("chatCommandsReady", chatCommands => {
+    const screamCommand = chatCommands.createCommandFromData({
+        commandKey: "/scream",
+        invokeOnCommand: (chatLog, messageText, chatData) => {
+            Hooks.once("preCreateChatMessage", (message, data, options, userID) => {
+                // Re-create current message's hearMap with Scream Distance
+                const newHearMap = createHearMap(canvas.tokens.get(chatData.speaker.token), game.settings.get(moduleName, "screamDistance"), messageText);
+                message.data.update({
+                    [`flags.${moduleName}`]: {
+                        "users": newHearMap
+                    }
+                });
+            });
+            messageText = `<b>` + messageText + `</b>`;
+            return messageText;
+        },
+        shouldDisplayToChat: true,
+        description: game.i18n.localize(`${moduleName}.screamDesc`)
+    });
+    chatCommands.registerCommand(screamCommand);
 });
 
 function createHearMap(speaker, distanceCanHear, messageText) {
