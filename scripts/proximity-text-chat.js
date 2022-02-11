@@ -141,13 +141,29 @@ Hooks.on("chatCommandsReady", chatCommands => {
     chatCommands.registerCommand(telepathyCommand);
 });
 
+// Implement improvedHearingDistance flag on tokens
+Hooks.on("renderTokenConfig", (app, html, appData) => {
+    html.find(`div.tab[data-tab="character"]`).append(`
+        <div class="form-group slim">
+            <label>
+            ${game.i18n.localize(`${moduleName}.improvedHearingDistance`)}
+            <span class="units">(${game.i18n.localize(`${moduleName}.gridUnits`)})</span>
+            </label>
+            <div class="form-fields">
+                <input type="number" name="flags.${moduleName}.improvedHearingDistance" placeholder="0" value="${appData.object.flags[moduleName]?.improvedHearingDistance}" />
+            </div>
+        </div>
+    `);
+    html.css("height", "auto");
+});
+
 function createHearMap(speaker, distanceCanHear, messageText) {
     // Collect tokens on canvas within proximity distance 
     const tokensThatCanHear = [];
     for (const token of canvas.tokens.placeables) {
         const d = canvas.grid.measureDistance(speaker, token, { gridSpaces: true });
-        //const improvedHearingDistance = token.document.getFlag(moduleName, "improvedHearingDistance");
-        //distanceCanHear += improvedHearingDistance || 0;
+        const improvedHearingDistance = token.document.getFlag(moduleName, "improvedHearingDistance");
+        distanceCanHear += improvedHearingDistance || 0;
         if (d > distanceCanHear || !token.actor.hasPlayerOwner) continue;
         tokensThatCanHear.push(token);
     }
