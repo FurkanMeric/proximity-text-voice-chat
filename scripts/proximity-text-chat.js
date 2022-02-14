@@ -41,19 +41,9 @@ Hooks.once("init", () => {
         }
     });
 
-    // Set up socket for handing chat bubble creation
+    // Set up module socket
     socket.on(`module.${moduleName}`, data => {
-        const { action } = data;
 
-        if (action === "chatBubble") {
-            const { hearMap, tokenID } = data;
-            let { messageText } = data;
-            const token = canvas.tokens.get(tokenID);
-            if (!token) return;
-
-            if (!hearMap[game.user.id]) messageText = "......";
-            canvas.hud.bubbles.say(token, messageText);
-        }
     });
 });
 
