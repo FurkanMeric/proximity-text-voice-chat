@@ -31,7 +31,7 @@ Hooks.once("init", () => {
         name: `${moduleName}.settings.screamDistance.name`,
         hint: `${moduleName}.settings.screamDistance.hint`,
         scope: "world",
-        config: false,
+        config: true,
         type: Number,
         default: 60,
         range: {
@@ -61,7 +61,6 @@ Hooks.once("setup", () => {
 });
 
 Hooks.once("ready", () => {
-    return;
     // ViNo compatibility
     if (game.modules.get("vino")?.active) {
         const vinoCreateChatMessage = Hooks._hooks.createChatMessage.find(f => f.name === "handleCreateChatMessage");
@@ -118,7 +117,6 @@ Hooks.on("renderChatMessage", (message, html, data) => {
 
 // Register Chat Commands
 Hooks.on("chatCommandsReady", chatCommands => {
-    return;
     const screamCommand = chatCommands.createCommandFromData({
         commandKey: "/scream",
         invokeOnCommand: (chatLog, messageText, chatData) => {
@@ -170,7 +168,6 @@ Hooks.on("chatCommandsReady", chatCommands => {
 
 // Implement improvedHearingDistance flag on tokens
 Hooks.on("renderTokenConfig", (app, html, appData) => {
-    return;
     html.find(`div.tab[data-tab="character"]`).append(`
         <div class="form-group slim">
             <label>
