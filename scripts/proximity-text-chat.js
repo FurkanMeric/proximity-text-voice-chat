@@ -31,7 +31,7 @@ Hooks.once("init", () => {
         name: `${moduleName}.settings.screamDistance.name`,
         hint: `${moduleName}.settings.screamDistance.hint`,
         scope: "world",
-        config: true,
+        config: false,
         type: Number,
         default: 60,
         range: {
@@ -61,6 +61,7 @@ Hooks.once("setup", () => {
 });
 
 Hooks.once("ready", () => {
+    return;
     // ViNo compatibility
     if (game.modules.get("vino")?.active) {
         const vinoCreateChatMessage = Hooks._hooks.createChatMessage.find(f => f.name === "handleCreateChatMessage");
@@ -91,6 +92,17 @@ Hooks.on("preCreateChatMessage", (message, data, options, userID) => {
     options.chatBubble = false;
 });
 
+Hooks.on("createChatMessage", (message, options, userID) => {
+    const hearMap = message.getFlag(moduleName, "users");
+    if (!hearMap) return;
+    const speaker = canvas.tokens.get(message.data.speaker.token);
+    if (!speaker) return;
+
+    let messageText = message.data.content;
+    if (!hearMap[game.user.id] && !game.user.isGM) messageText = "......";
+    canvas.hud.bubbles.say(speaker, messageText);
+});
+
 // When rendering chat message, use hearMap data in chat message flag to determine if message should visible to current user
 // If not, hide chat message html
 Hooks.on("renderChatMessage", (message, html, data) => {
@@ -106,6 +118,7 @@ Hooks.on("renderChatMessage", (message, html, data) => {
 
 // Register Chat Commands
 Hooks.on("chatCommandsReady", chatCommands => {
+    return;
     const screamCommand = chatCommands.createCommandFromData({
         commandKey: "/scream",
         invokeOnCommand: (chatLog, messageText, chatData) => {
@@ -157,6 +170,7 @@ Hooks.on("chatCommandsReady", chatCommands => {
 
 // Implement improvedHearingDistance flag on tokens
 Hooks.on("renderTokenConfig", (app, html, appData) => {
+    return;
     html.find(`div.tab[data-tab="character"]`).append(`
         <div class="form-group slim">
             <label>
@@ -194,16 +208,6 @@ function createHearMap(speaker, distanceCanHear, messageText) {
             if (prm === 3) hearMap[id] = true;
         }
     });
-
-    // Create chat bubbles on other clients via socket
-    const socketData = {
-        action: "chatBubble",
-        hearMap,
-        tokenID: speaker.id,
-        messageText
-    };
-    socket.emit(`module.${moduleName}`, socketData);
-    canvas.hud.bubbles.say(speaker, messageText);
 
     return hearMap;
 }
