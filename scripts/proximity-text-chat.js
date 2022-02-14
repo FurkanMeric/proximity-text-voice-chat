@@ -1,4 +1,5 @@
 const moduleName = "proximity-text-chat";
+let vinoCreateChatMessage;
 
 Hooks.once("init", () => {
     // Enable proximity chatting
@@ -81,17 +82,11 @@ Hooks.once("init", () => {
 Hooks.once("setup", () => {
 });
 
-Hooks.once("ready", () => { // TODO: fix
+Hooks.once("ready", () => {
     // ViNo compatibility
     if (game.modules.get("vino")?.active) {
-        const vinoCreateChatMessage = Hooks._hooks.createChatMessage.find(f => f.name === "handleCreateChatMessage");
+        vinoCreateChatMessage = Hooks._hooks.createChatMessage.find(f => f.name === "handleCreateChatMessage");
         Hooks.off("createChatMessage", vinoCreateChatMessage);
-        Hooks.on("createChatMessage", message => {
-            let inProximity = true;
-            const hearMap = message.getFlag(moduleName, "users");
-            if (hearMap) inProximity = hearMap[game.user.id] || game.user.isGM;
-            if (inProximity) return vinoCreateChatMessage.call(this, message);
-        });
     }
 });
 
@@ -119,7 +114,7 @@ Hooks.on("preCreateChatMessage", (message, data, options, userID) => {
 });
 
 Hooks.on("createChatMessage", (message, options, userID) => {
-    const listener = canvas.tokens.controlled[0];
+    const listener = canvas.tokens.controlled[0] || game.user.character?.getActiveTokens()[0];
     if (!listener) return;
     const speakerID = message.data.type === 4 ? message.getFlag(moduleName, "speaker") : message.data.speaker.token;
     const speaker = canvas.tokens.get(speakerID);
@@ -138,22 +133,29 @@ Hooks.on("createChatMessage", (message, options, userID) => {
         (d <= distanceCanHear || telepathyTarget === game.user.id) 
         && processHideBySight
     ) {
+        // Set current user to true in hearMap
         socket.emit(`module.${moduleName}`, {
             action: "showMessage",
             messageID: message.id,
             userID: game.user.id
         });
 
+        // Use true message text for chat bubble
         messageText = message.data.content;
+
+        // ViNo compatibility
+        if (game.modules.get("vino")?.active) vinoCreateChatMessage.call(this, message);
     }
 
+    // Manually create chat bubble
     canvas.hud.bubbles.say(speaker, messageText);
 });
 
-// When rendering chat message, use hearMap data in chat message flag to determine if message should visible to current user
-// If not, hide chat message html
+// When rendering chat message, hide by defualt
+// Use hearMap data in chat message flag to determine if message should be shown to current user
 Hooks.on("renderChatMessage", (message, html, data) => {
     html.hide();
+
     const hearMap = message.getFlag(moduleName, "users");
     if (game.user.isGM || !hearMap) return html.show();
 
@@ -225,30 +227,3 @@ Hooks.on("renderTokenConfig", (app, html, appData) => {
     `);
     html.css("height", "auto");
 });
-
-function createHearMap(speaker, distanceCanHear, messageText) {
-    // Collect tokens on canvas within proximity distance 
-    const tokensThatCanHear = [];
-    for (const token of canvas.tokens.placeables) {
-        const d = canvas.grid.measureDistance(speaker, token, { gridSpaces: true });
-        const improvedHearingDistance = token.document.getFlag(moduleName, "improvedHearingDistance");
-        distanceCanHear += improvedHearingDistance || 0;
-        if (d > distanceCanHear || !token.actor.hasPlayerOwner) continue;
-        tokensThatCanHear.push(token);
-    }
-
-    // Create hearMap with: k = user ID (string) | v = whether user can hear (see) this message (Boolean)
-    const hearMap = {};
-    game.users.forEach(u => {
-        if (u.isGM) return;
-        hearMap[u.id] = false;
-    });
-    tokensThatCanHear.forEach(t => {
-        for (const [id, prm] of Object.entries(t.actor.data.permission)) {
-            if (id === "default" || game.users.get(id).isGM) continue;
-            if (prm === 3) hearMap[id] = true;
-        }
-    });
-
-    return hearMap;
-}
