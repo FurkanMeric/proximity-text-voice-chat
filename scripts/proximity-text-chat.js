@@ -41,9 +41,40 @@ Hooks.once("init", () => {
         }
     });
 
+    game.settings.register(moduleName, "hideBySight", {
+        name: `${moduleName}.settings.hideBySight.name`,
+        hint: "",
+        scope: "world",
+        config: true,
+        type: Boolean,
+        default: false
+    });
+
     // Set up module socket
     socket.on(`module.${moduleName}`, data => {
+        const { action } = data;
 
+        if (action === "showMessage") {
+            if (game.user.id !== game.users.find(u => u.active && u.isGM).id) return; 
+            const { messageID, userID } = data;
+            if (game.users.get(userID).isGM) return;
+
+            const message = game.messages.get(messageID);
+            const hearMap = message.getFlag(moduleName, "users");
+            hearMap[userID] = true;
+            message.setFlag(moduleName, "users", hearMap);
+        }
+
+        if (action === "hideBySight") {
+            if (game.user.id !== game.users.find(u => u.active && u.isGM).id) return;
+
+            const { messageID, userID } = data;
+            if (game.users.get(userID).isGM) return;
+            const message = game.messages.get(messageID);
+            const hearMap = message.getFlag(moduleName, "users");
+            hearMap[userID] = false;
+            message.setFlag(moduleName, "users", hearMap);
+        }
     });
 });
 
@@ -69,40 +100,63 @@ Hooks.on("preCreateChatMessage", (message, data, options, userID) => {
     if (message.data.type === 4) speaker = canvas.tokens.controlled[0];
     if (!speaker) return;
 
-    // Save hearMap in chat message flags
-    const hearMap = createHearMap(speaker, game.settings.get(moduleName, "proximityDistance"), message.data.content);
+    // Initiate hearMap in message flag
+    const hearMap = {};
+    game.users.forEach(u => {
+        if (u.isGM) return;
+        hearMap[u.id] = false;
+    });
     message.data.update({
         [`flags.${moduleName}`]: {
             "users": hearMap
         }
     });
 
-    // Prevent automatic chat bubble creation (will be created manually in createHearMap() if user can see message)
+    // Prevent automatic chat bubble creation; will be handled manually in createChatMessge hook
     options.chatBubble = false;
+    return
 });
 
 Hooks.on("createChatMessage", (message, options, userID) => {
-    const hearMap = message.getFlag(moduleName, "users");
-    if (!hearMap) return;
-    const speaker = canvas.tokens.get(message.data.speaker.token);
+    const listener = canvas.tokens.controlled[0];
+    if (!listener) return;
+    let speaker = canvas.tokens.get(message.data.speaker.token);
+    if (message.data.type === 4) speaker = message.getFlag(moduleName, "speaker");
     if (!speaker) return;
 
-    let messageText = message.data.content;
-    if (!hearMap[game.user.id] && !game.user.isGM) messageText = "......";
+    const d = canvas.grid.measureDistance(speaker, listener, { gridSpaces: true });
+    console.log(d)
+    console.log(listener.document.name)
+    console.log(speaker.document.name)
+    let distanceCanHear = game.settings.get(moduleName, "proximityDistance");
+    const improvedHearingDistance = listener.document.getFlag(moduleName, "improvedHearingDistance");
+    distanceCanHear += improvedHearingDistance || 0;
+    let messageText = "......";
+    let processHideBySight = true;
+    if (game.settings.get(moduleName, "hideBySight") && !speaker.isVisible) processHideBySight = false;
+    if (d <= distanceCanHear && processHideBySight) {
+        socket.emit(`module.${moduleName}`, {
+            action: "showMessage",
+            messageID: message.id,
+            userID: game.user.id
+        });
+
+        messageText = message.data.content;
+    }
+
     canvas.hud.bubbles.say(speaker, messageText);
 });
 
 // When rendering chat message, use hearMap data in chat message flag to determine if message should visible to current user
 // If not, hide chat message html
 Hooks.on("renderChatMessage", (message, html, data) => {
+    html.hide();
     const hearMap = message.getFlag(moduleName, "users");
-    if (game.user.isGM || !hearMap || !message.visible) return;
+    if (game.user.isGM || !hearMap) return html.show();
 
     for (const [id, v] of Object.entries(hearMap)) {
-        if (v && id === game.user.id) return;
+        if (v && id === game.user.id) return html.show();
     }
-
-    html.hide();
 });
 
 // Register Chat Commands
