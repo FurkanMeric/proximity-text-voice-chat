@@ -125,10 +125,8 @@ Hooks.on("createChatMessage", (message, options, userID) => {
     if (!speaker) return;
 
     const d = canvas.grid.measureDistance(speaker, listener, { gridSpaces: true });
-    console.log(d)
-    console.log(listener.document.name)
-    console.log(speaker.document.name)
-    let distanceCanHear = game.settings.get(moduleName, "proximityDistance");
+    const isScream = message.getFlag(moduleName, "isScream");
+    let distanceCanHear = isScream ? game.settings.get(moduleName, "screamDistance") : game.settings.get(moduleName, "proximityDistance");
     const improvedHearingDistance = listener.document.getFlag(moduleName, "improvedHearingDistance");
     distanceCanHear += improvedHearingDistance || 0;
     let messageText = "......";
@@ -165,11 +163,10 @@ Hooks.on("chatCommandsReady", chatCommands => {
         commandKey: "/scream",
         invokeOnCommand: (chatLog, messageText, chatData) => {
             Hooks.once("preCreateChatMessage", (message, data, options, userID) => {
-                // Re-create current message's hearMap with Scream Distance
-                const newHearMap = createHearMap(canvas.tokens.get(chatData.speaker.token), game.settings.get(moduleName, "screamDistance"), messageText);
+                // Flag chat message as a scream
                 message.data.update({
                     [`flags.${moduleName}`]: {
-                        "users": newHearMap
+                        "isScream": true
                     }
                 });
             });
