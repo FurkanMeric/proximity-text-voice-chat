@@ -105,11 +105,13 @@ Hooks.on("preCreateChatMessage", (message, data, options, userID) => {
         if (u.isGM) return;
         hearMap[u.id] = false;
     });
-    message.data.update({
+    const update = {
         [`flags.${moduleName}`]: {
             "users": hearMap
         }
-    });
+    };
+    if (message.data.type === 4) update[`flags.${moduleName}`].speaker = speaker.id;
+    message.data.update(update);
 
     // Prevent automatic chat bubble creation; will be handled manually in createChatMessge hook
     options.chatBubble = false;
