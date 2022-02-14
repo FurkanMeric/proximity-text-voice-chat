@@ -81,7 +81,7 @@ Hooks.once("init", () => {
 Hooks.once("setup", () => {
 });
 
-Hooks.once("ready", () => {
+Hooks.once("ready", () => { // TODO: fix
     // ViNo compatibility
     if (game.modules.get("vino")?.active) {
         const vinoCreateChatMessage = Hooks._hooks.createChatMessage.find(f => f.name === "handleCreateChatMessage");
@@ -96,8 +96,7 @@ Hooks.once("ready", () => {
 });
 
 Hooks.on("preCreateChatMessage", (message, data, options, userID) => {
-    let speaker = canvas.tokens.get(message.data.speaker.token);
-    if (message.data.type === 4) speaker = canvas.tokens.controlled[0];
+    const speaker = message.data.type === 4 ? canvas.tokens.controlled[0] : canvas.tokens.get(message.data.speaker.token);
     if (!speaker) return;
 
     // Initiate hearMap in message flag
@@ -114,14 +113,14 @@ Hooks.on("preCreateChatMessage", (message, data, options, userID) => {
 
     // Prevent automatic chat bubble creation; will be handled manually in createChatMessge hook
     options.chatBubble = false;
-    return
+    return;
 });
 
 Hooks.on("createChatMessage", (message, options, userID) => {
     const listener = canvas.tokens.controlled[0];
     if (!listener) return;
-    let speaker = canvas.tokens.get(message.data.speaker.token);
-    if (message.data.type === 4) speaker = message.getFlag(moduleName, "speaker");
+    const speakerID = message.data.type === 4 ? message.getFlag(moduleName, "speaker") : message.data.speaker.token;
+    const speaker = canvas.tokens.get(speakerID);
     if (!speaker) return;
 
     const d = canvas.grid.measureDistance(speaker, listener, { gridSpaces: true });
@@ -130,9 +129,13 @@ Hooks.on("createChatMessage", (message, options, userID) => {
     const improvedHearingDistance = listener.document.getFlag(moduleName, "improvedHearingDistance");
     distanceCanHear += improvedHearingDistance || 0;
     let messageText = "......";
+    const telepathyTarget = message.getFlag(moduleName, "telepathyTarget");
     let processHideBySight = true;
     if (game.settings.get(moduleName, "hideBySight") && !speaker.isVisible) processHideBySight = false;
-    if (d <= distanceCanHear && processHideBySight) {
+    if (
+        (d <= distanceCanHear || telepathyTarget === game.user.id) 
+        && processHideBySight
+    ) {
         socket.emit(`module.${moduleName}`, {
             action: "showMessage",
             messageID: message.id,
@@ -166,7 +169,7 @@ Hooks.on("chatCommandsReady", chatCommands => {
                 // Flag chat message as a scream
                 message.data.update({
                     [`flags.${moduleName}`]: {
-                        "isScream": true
+                        isScream: true
                     }
                 });
             });
@@ -185,13 +188,11 @@ Hooks.on("chatCommandsReady", chatCommands => {
             const user = game.users.getName(target);
             if (user) {
                 Hooks.once("preCreateChatMessage", (message, data, options, userID) => {
-                    // Re-create hearMap with target player v = true
-                    const oldHearMap = message.data.flags[moduleName]?.users;
-                    if (!oldHearMap) return;
-                    oldHearMap[user.id] = true;
+                    // Flag chat message as telepathy and udpate message to a whisper
                     message.data.update({
                         [`flags.${moduleName}`]: {
-                            "users": oldHearMap
+                            telepathyTarget: user.id,
+                            speaker: canvas.tokens.controlled[0].id
                         },
                         type: 4,
                         whisper: [user.id]
