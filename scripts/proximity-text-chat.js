@@ -174,10 +174,11 @@ Hooks.on("chatCommandsReady", chatCommands => {
                 message.data.update({
                     [`flags.${moduleName}`]: {
                         isScream: true
-                    }
+                    },
+                    type: 2,
                 });
             });
-            messageText = `<b>` + messageText + `</b>`;
+            //messageText = `<b>` + messageText + `</b>`; // clashes with ViNo compat
             return messageText;
         },
         shouldDisplayToChat: true,
@@ -203,7 +204,7 @@ Hooks.on("chatCommandsReady", chatCommands => {
                     });
                 });
             }
-            messageText = `<i>` + messageText + `</i>`;
+            //messageText = `<i>` + messageText + `</i>`; // clashes with ViNo compat
             return messageText;
         },
         shouldDisplayToChat: true,
