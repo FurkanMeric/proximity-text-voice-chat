@@ -148,7 +148,7 @@ Hooks.on("createChatMessage", (message, options, userID) => {
     }
 
     // Manually create chat bubble
-    canvas.hud.bubbles.say(speaker, messageText);
+    if (message.data.type === 2) canvas.hud.bubbles.say(speaker, messageText);
 });
 
 // When rendering chat message, hide by defualt
