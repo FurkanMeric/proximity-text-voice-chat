@@ -1,3 +1,5 @@
+import { libWrapper } from "../lib/shim.js";
+
 const moduleName = "proximity-text-chat";
 let vinoCreateChatMessage;
 
@@ -77,6 +79,18 @@ Hooks.once("init", () => {
             message.setFlag(moduleName, "users", hearMap);
         }
     });
+
+    libWrapper.register(moduleName, "ChatMessage.prototype.visible", function(wrapped) {
+        const vis = wrapped();
+        if (!vis) return false;
+
+        const hearMap = this.getFlag(moduleName, "users");
+        if (!hearMap) return vis;
+
+        if (hearMap[game.user.id]) return true;
+
+        return game.user.isGM;
+    }, "WRAPPER");
 });
 
 Hooks.once("setup", () => {
@@ -151,19 +165,6 @@ Hooks.on("createChatMessage", (message, options, userID) => {
     if (message.data.type === 2) canvas.hud.bubbles.say(speaker, messageText);
 });
 
-// When rendering chat message, hide by defualt
-// Use hearMap data in chat message flag to determine if message should be shown to current user
-Hooks.on("renderChatMessage", (message, html, data) => {
-    html.hide();
-
-    const hearMap = message.getFlag(moduleName, "users");
-    if (game.user.isGM || !hearMap) return html.show();
-
-    for (const [id, v] of Object.entries(hearMap)) {
-        if (v && id === game.user.id) return html.show();
-    }
-});
-
 // Register Chat Commands
 Hooks.on("chatCommandsReady", chatCommands => {
     const screamCommand = chatCommands.createCommandFromData({
@@ -199,8 +200,11 @@ Hooks.on("chatCommandsReady", chatCommands => {
                             telepathyTarget: user.id,
                             speaker: canvas.tokens.controlled[0].id
                         },
-                        type: 4,
-                        whisper: [user.id]
+                        type: 2,
+                        whisper: [user.id],
+                        speaker: {
+                            token: canvas.tokens.controlled[0].id
+                        }
                     });
                 });
             }
