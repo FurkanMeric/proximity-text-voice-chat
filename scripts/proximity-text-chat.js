@@ -83,13 +83,10 @@ Hooks.once("init", () => {
     libWrapper.register(moduleName, "ChatMessage.prototype.visible", function(wrapped) {
         const vis = wrapped();
         if (!vis) return false;
+        if (game.user.isGM) return true;
 
         const hearMap = this.getFlag(moduleName, "users");
-        if (!hearMap) return vis;
-
-        if (hearMap[game.user.id]) return true;
-
-        return game.user.isGM;
+        return hearMap?.[game.user.id];
     }, "WRAPPER");
 });
 
