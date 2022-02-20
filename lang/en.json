@@ -12,6 +12,9 @@
                 "name": "Scream Distance (grid units)",
                 "hint": "Messages created using /scream will be seen by owners of token within Scream Distance."
             },
+            "hideRolls": {
+                "name": "Hide Roll-type Messages Outside Proximity Distance"
+            },
             "hideBySight": {
                 "name": "Hide Messages from Out of Sight Speakers"
             }
