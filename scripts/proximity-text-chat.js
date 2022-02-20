@@ -44,6 +44,16 @@ Hooks.once("init", () => {
         }
     });
 
+    // Enable hiding of roll-type messages
+    game.settings.register(moduleName, "hideRolls", {
+        name: `${moduleName}.settings.hideRolls.name`,
+        hint: "",
+        scope: "world",
+        config: true,
+        type: Boolean,
+        default: true
+    });
+
     game.settings.register(moduleName, "hideBySight", {
         name: `${moduleName}.settings.hideBySight.name`,
         hint: "",
@@ -64,6 +74,7 @@ Hooks.once("init", () => {
 
             const message = game.messages.get(messageID);
             const hearMap = message.getFlag(moduleName, "users");
+            if (!hearMap) return;
             hearMap[userID] = true;
             message.setFlag(moduleName, "users", hearMap);
         }
@@ -86,7 +97,8 @@ Hooks.once("init", () => {
         if (game.user.isGM) return true;
 
         const hearMap = this.getFlag(moduleName, "users");
-        return hearMap?.[game.user.id];
+        if (!hearMap) return vis;
+        return hearMap[game.user.id];
     }, "WRAPPER");
 });
 
@@ -104,6 +116,8 @@ Hooks.once("ready", () => {
 Hooks.on("preCreateChatMessage", (message, data, options, userID) => {
     const speaker = message.data.type === 4 ? canvas.tokens.controlled[0] : canvas.tokens.get(message.data.speaker.token);
     if (!speaker) return;
+
+    if (!game.settings.get(moduleName, "hideRolls") && (message.data.type === 0 || message.data.type === 5)) return;
 
     // Initiate hearMap in message flag
     const hearMap = {};
