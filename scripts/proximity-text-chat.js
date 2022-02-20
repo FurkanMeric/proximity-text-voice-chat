@@ -205,8 +205,9 @@ Hooks.on("chatCommandsReady", chatCommands => {
                     });
                 });
             }
+
             //messageText = `<i>` + messageText + `</i>`; // clashes with ViNo compat
-            return messageText;
+            return messageText.replace(target, "");
         },
         shouldDisplayToChat: true,
         description: game.i18n.localize(`${moduleName}.telepathyDesc`)
