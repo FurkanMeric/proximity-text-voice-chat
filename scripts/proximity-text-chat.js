@@ -114,7 +114,7 @@ Hooks.once("ready", () => {
 });
 
 Hooks.on("preCreateChatMessage", (message, data, options, userID) => {
-    const speaker = message.data.type === 4 ? canvas.tokens.controlled[0] : canvas.tokens.get(message.data.speaker.token);
+    const speaker = [0,4,5].includes(message.data.type) ? canvas.tokens.controlled[0] : canvas.tokens.get(message.data.speaker.token);
     if (!speaker) return;
 
     if (!game.settings.get(moduleName, "hideRolls") && (message.data.type === 0 || message.data.type === 5)) return;
@@ -125,12 +125,14 @@ Hooks.on("preCreateChatMessage", (message, data, options, userID) => {
         if (u.isGM) return;
         hearMap[u.id] = false;
     });
+    hearMap[game.user.id] = true;
     const update = {
         [`flags.${moduleName}`]: {
             "users": hearMap
         }
     };
-    if (message.data.type === 4) update[`flags.${moduleName}`].speaker = speaker.id;
+    //if (message.data.type === 4) update[`flags.${moduleName}`].speaker = speaker.id;
+    if ([0,4,5].includes(message.data.type)) update[`flags.${moduleName}`].speaker = speaker.id;
     message.data.update(update);
 
     // Prevent automatic chat bubble creation; will be handled manually in createChatMessge hook
