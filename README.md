@@ -34,6 +34,8 @@ If the [**Library: Chat Commands**](https://foundryvtt.com/packages/_chatcommand
 ### Compatible
 - [VIsual NOvel for FoundryVTT](https://foundryvtt.com/packages/vino)
 - [Tabbed Chatlog](https://foundryvtt.com/packages/tabbed-chatlog)
+- [DF Chat Enhancements](https://foundryvtt.com/packages/df-chat-enhance)
+- [Chat Portrait](https://foundryvtt.com/packages/chat-portrait)
 ### Incompatible
 - Theatre Inserts
 
