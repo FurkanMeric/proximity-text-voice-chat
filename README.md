@@ -24,10 +24,10 @@ https://user-images.githubusercontent.com/68755874/156452257-150f2ef2-2330-4d22-
 Proximity Distance is set in the module settings and is based on the scene's grid units.
 
 ## Additional Features
-An optional module setting can be enabled to hide messages from tokens that are not visible to the user, even if the token is within Proximity Distance.
+An optional module setting can be enabled to hide messages from tokens that are not visible to the current user, even if the token is within Proximity Distance.
 
 If the [**Library: Chat Commands**](https://foundryvtt.com/packages/_chatcommands) module is enabled, some additional features are available:
-- `/scream`: This command allows a message to be heard outside of Proximity Distance, but still within a Scream Distance (also set in the module settings).
+- `/scream`: This command allows a message to be heard outside of Proximity Distance, but still within a set Scream Distance (also set in the module settings).
 - `/telepathy username`: This command allows a token to send a direct message to the indicated user, regardless of distance between tokens.
 
 ## Compatibility
