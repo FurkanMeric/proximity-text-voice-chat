@@ -12,7 +12,7 @@ This module was funded by a commission. Donations help fund upates and new modul
 This module hides chat messages from token speakers that are a customizable distance away from the user's currently selected token.
 
 ## Demo
-The left side of the video shows a GM user perspective. All messags are always visible to GM users.
+The left side of the video shows a GM user perspective. All messages are always visible to GM users.
 
 The righ side shows the perspective of the user that owns the Aoth actor.
 
