@@ -11,4 +11,6 @@ Donations help fund upates and new modules!
 
 This module hides chat messages from token speakers that are a customizable distance away from the user's currently selected token.
 
-https://user-images.githubusercontent.com/58986949/115314310-805b2780-a1a7-11eb-8558-648a367ea231.mp4
+
+https://user-images.githubusercontent.com/68755874/156452257-150f2ef2-2330-4d22-b18a-1c88b521f9b4.mp4
+
