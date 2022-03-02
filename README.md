@@ -14,7 +14,7 @@ This module hides chat messages from token speakers that are a customizable dist
 ## Demo
 The left side of the video shows a GM user perspective. All messages are always visible to GM users.
 
-The righ side shows the perspective of the user that owns the Aoth actor.
+The right side shows the perspective of the user that owns the Aoth actor.
 
 The red box show the currently set Proximity Distance, with respect to the Aoth token. Essentially, Zanna is within proximity of Aoth, while the Acolyte is outside proximity.
 
