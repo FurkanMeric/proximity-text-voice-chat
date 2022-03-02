@@ -8,3 +8,7 @@ Donations help fund upates and new modules!
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/jessev14)
 
 # Proximity Text Chat
+
+This module hides chat messages from token speakers that are a customizable distance away from the user's currently selected token.
+
+https://user-images.githubusercontent.com/58986949/115314310-805b2780-a1a7-11eb-8558-648a367ea231.mp4
