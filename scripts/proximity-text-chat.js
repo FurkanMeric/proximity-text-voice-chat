@@ -114,7 +114,8 @@ Hooks.once("ready", () => {
 });
 
 Hooks.on("preCreateChatMessage", (message, data, options, userID) => {
-    if (message.data.type === 1) return;
+    const oocTabActive = $(document).find(`nav.tabbedchatlog.tabs`).find(`a.item.ooc`).hasClass("active");
+    if (message.data.type === 1 || oocTabActive) return;
     const speaker = [0,4,5].includes(message.data.type) ? canvas.tokens.controlled[0] : canvas.tokens.get(message.data.speaker.token);
     if (!speaker) return;
 
