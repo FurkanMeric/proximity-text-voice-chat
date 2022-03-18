@@ -93,7 +93,7 @@ Hooks.once("init", () => {
 
     libWrapper.register(moduleName, "ChatMessage.prototype.visible", function(wrapped) {
         const vis = wrapped();
-        if (!vis) return false;
+        //if (!vis) return false;
         if (game.user.isGM) return true;
 
         const hearMap = this.getFlag(moduleName, "users");
@@ -116,6 +116,7 @@ Hooks.once("ready", () => {
 Hooks.on("preCreateChatMessage", (message, data, options, userID) => {
     const oocTabActive = $(document).find(`nav.tabbedchatlog.tabs`).find(`a.item.ooc`).hasClass("active");
     if (message.data.type === 1 || oocTabActive) return;
+
     const speaker = [0,4,5].includes(message.data.type) ? canvas.tokens.controlled[0] : canvas.tokens.get(message.data.speaker.token);
     if (!speaker) return;
 
