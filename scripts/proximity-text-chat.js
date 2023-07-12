@@ -1,12 +1,11 @@
 import { libWrapper } from "../lib/shim.js";
 
-const moduleName = "proximity-text-chat";
-let vinoCreateChatMessage;
+const moduleID = "proximity-text-chat";
 
 Hooks.once("init", () => {
     // Enable proximity chatting
-    game.settings.register(moduleName, "proximityEnabled", {
-        name: `${moduleName}.settings.proximityEnabled.name`,
+    game.settings.register(moduleID, "proximityEnabled", {
+        name: `${moduleID}.settings.proximityEnabled.name`,
         hint: "",
         scope: "world",
         config: true,
@@ -15,9 +14,9 @@ Hooks.once("init", () => {
     });
 
     // Set grid distance that is considered "within proximity"
-    game.settings.register(moduleName, "proximityDistance", {
-        name: `${moduleName}.settings.proximityDistance.name`,
-        hint: `${moduleName}.settings.proximityDistance.hint`,
+    game.settings.register(moduleID, "proximityDistance", {
+        name: `${moduleID}.settings.proximityDistance.name`,
+        hint: `${moduleID}.settings.proximityDistance.hint`,
         scope: "world",
         config: true,
         type: Number,
@@ -30,9 +29,9 @@ Hooks.once("init", () => {
     });
 
     // Set grid distance for tokens that can hear /scream commands
-    game.settings.register(moduleName, "screamDistance", {
-        name: `${moduleName}.settings.screamDistance.name`,
-        hint: `${moduleName}.settings.screamDistance.hint`,
+    game.settings.register(moduleID, "screamDistance", {
+        name: `${moduleID}.settings.screamDistance.name`,
+        hint: `${moduleID}.settings.screamDistance.hint`,
         scope: "world",
         config: true,
         type: Number,
@@ -45,8 +44,8 @@ Hooks.once("init", () => {
     });
 
     // Enable hiding of roll-type messages
-    game.settings.register(moduleName, "hideRolls", {
-        name: `${moduleName}.settings.hideRolls.name`,
+    game.settings.register(moduleID, "hideRolls", {
+        name: `${moduleID}.settings.hideRolls.name`,
         hint: "",
         scope: "world",
         config: true,
@@ -54,8 +53,8 @@ Hooks.once("init", () => {
         default: true
     });
 
-    game.settings.register(moduleName, "hideBySight", {
-        name: `${moduleName}.settings.hideBySight.name`,
+    game.settings.register(moduleID, "hideBySight", {
+        name: `${moduleID}.settings.hideBySight.name`,
         hint: "",
         scope: "world",
         config: true,
@@ -64,7 +63,7 @@ Hooks.once("init", () => {
     });
 
     // Set up module socket
-    socket.on(`module.${moduleName}`, data => {
+    socket.on(`module.${moduleID}`, data => {
         const { action } = data;
 
         if (action === "showMessage") {
@@ -73,10 +72,10 @@ Hooks.once("init", () => {
             if (game.users.get(userID).isGM) return;
 
             const message = game.messages.get(messageID);
-            const hearMap = message.getFlag(moduleName, "users");
+            const hearMap = message.getFlag(moduleID, "users");
             if (!hearMap) return;
             hearMap[userID] = true;
-            message.setFlag(moduleName, "users", hearMap);
+            message.setFlag(moduleID, "users", hearMap);
         }
 
         if (action === "hideBySight") {
@@ -85,18 +84,18 @@ Hooks.once("init", () => {
             const { messageID, userID } = data;
             if (game.users.get(userID).isGM) return;
             const message = game.messages.get(messageID);
-            const hearMap = message.getFlag(moduleName, "users");
+            const hearMap = message.getFlag(moduleID, "users");
             hearMap[userID] = false;
-            message.setFlag(moduleName, "users", hearMap);
+            message.setFlag(moduleID, "users", hearMap);
         }
     });
 
-    libWrapper.register(moduleName, "ChatMessage.prototype.visible", function(wrapped) {
+    libWrapper.register(moduleID, "ChatMessage.prototype.visible", function(wrapped) {
         const vis = wrapped();
         //if (!vis) return false;
         if (game.user.isGM) return true;
 
-        const hearMap = this.getFlag(moduleName, "users");
+        const hearMap = this.getFlag(moduleID, "users");
         if (!hearMap) return vis;
         return hearMap[game.user.id];
     }, "WRAPPER");
@@ -120,7 +119,7 @@ Hooks.on("preCreateChatMessage", (message, data, options, userID) => {
     const speaker = [0,4,5].includes(message.data.type) ? canvas.tokens.controlled[0] : canvas.tokens.get(message.data.speaker.token);
     if (!speaker) return;
 
-    if (!game.settings.get(moduleName, "hideRolls") && (message.data.type === 0 || message.data.type === 5)) return;
+    if (!game.settings.get(moduleID, "hideRolls") && (message.data.type === 0 || message.data.type === 5)) return;
 
     // Initiate hearMap in message flag
     const hearMap = {};
@@ -130,12 +129,12 @@ Hooks.on("preCreateChatMessage", (message, data, options, userID) => {
     });
     hearMap[game.user.id] = true;
     const update = {
-        [`flags.${moduleName}`]: {
+        [`flags.${moduleID}`]: {
             "users": hearMap
         }
     };
     //if (message.data.type === 4) update[`flags.${moduleName}`].speaker = speaker.id;
-    if ([0,4,5].includes(message.data.type)) update[`flags.${moduleName}`].speaker = speaker.id;
+    if ([0,4,5].includes(message.data.type)) update[`flags.${moduleID}`].speaker = speaker.id;
     message.data.update(update);
 
     // Prevent automatic chat bubble creation; will be handled manually in createChatMessge hook
@@ -146,25 +145,25 @@ Hooks.on("preCreateChatMessage", (message, data, options, userID) => {
 Hooks.on("createChatMessage", (message, options, userID) => {
     const listener = canvas.tokens.controlled[0] || game.user.character?.getActiveTokens()[0];
     if (!listener) return;
-    const speakerID = message.data.type === 4 ? message.getFlag(moduleName, "speaker") : message.data.speaker.token;
+    const speakerID = message.data.type === 4 ? message.getFlag(moduleID, "speaker") : message.data.speaker.token;
     const speaker = canvas.tokens.get(speakerID);
     if (!speaker) return;
 
     const d = canvas.grid.measureDistance(speaker, listener, { gridSpaces: true });
-    const isScream = message.getFlag(moduleName, "isScream");
-    let distanceCanHear = isScream ? game.settings.get(moduleName, "screamDistance") : game.settings.get(moduleName, "proximityDistance");
-    const improvedHearingDistance = listener.document.getFlag(moduleName, "improvedHearingDistance");
+    const isScream = message.getFlag(moduleID, "isScream");
+    let distanceCanHear = isScream ? game.settings.get(moduleID, "screamDistance") : game.settings.get(moduleID, "proximityDistance");
+    const improvedHearingDistance = listener.document.getFlag(moduleID, "improvedHearingDistance");
     distanceCanHear += improvedHearingDistance || 0;
     let messageText = "......";
-    const telepathyTarget = message.getFlag(moduleName, "telepathyTarget");
+    const telepathyTarget = message.getFlag(moduleID, "telepathyTarget");
     let processHideBySight = true;
-    if (game.settings.get(moduleName, "hideBySight") && !speaker.isVisible) processHideBySight = false;
+    if (game.settings.get(moduleID, "hideBySight") && !speaker.isVisible) processHideBySight = false;
     if (
         (d <= distanceCanHear || telepathyTarget === game.user.id) 
         && processHideBySight
     ) {
         // Set current user to true in hearMap
-        socket.emit(`module.${moduleName}`, {
+        socket.emit(`module.${moduleID}`, {
             action: "showMessage",
             messageID: message.id,
             userID: game.user.id
@@ -189,7 +188,7 @@ Hooks.on("chatCommandsReady", chatCommands => {
             Hooks.once("preCreateChatMessage", (message, data, options, userID) => {
                 // Flag chat message as a scream
                 message.data.update({
-                    [`flags.${moduleName}`]: {
+                    [`flags.${moduleID}`]: {
                         isScream: true
                     },
                     type: 2,
@@ -199,7 +198,7 @@ Hooks.on("chatCommandsReady", chatCommands => {
             return messageText;
         },
         shouldDisplayToChat: true,
-        description: game.i18n.localize(`${moduleName}.screamDesc`)
+        description: game.i18n.localize(`${moduleID}.screamDesc`)
     });
     chatCommands.registerCommand(screamCommand);
 
@@ -212,7 +211,7 @@ Hooks.on("chatCommandsReady", chatCommands => {
                 Hooks.once("preCreateChatMessage", (message, data, options, userID) => {
                     // Flag chat message as telepathy and udpate message to a whisper
                     message.data.update({
-                        [`flags.${moduleName}`]: {
+                        [`flags.${moduleID}`]: {
                             telepathyTarget: user.id,
                             speaker: canvas.tokens.controlled[0].id
                         },
@@ -229,7 +228,7 @@ Hooks.on("chatCommandsReady", chatCommands => {
             return messageText.replace(target, "");
         },
         shouldDisplayToChat: true,
-        description: game.i18n.localize(`${moduleName}.telepathyDesc`)
+        description: game.i18n.localize(`${moduleID}.telepathyDesc`)
     });
     chatCommands.registerCommand(telepathyCommand);
 });
@@ -239,11 +238,11 @@ Hooks.on("renderTokenConfig", (app, html, appData) => {
     html.find(`div.tab[data-tab="character"]`).append(`
         <div class="form-group slim">
             <label>
-            ${game.i18n.localize(`${moduleName}.improvedHearingDistance`)}
-            <span class="units">(${game.i18n.localize(`${moduleName}.gridUnits`)})</span>
+            ${game.i18n.localize(`${moduleID}.improvedHearingDistance`)}
+            <span class="units">(${game.i18n.localize(`${moduleID}.gridUnits`)})</span>
             </label>
             <div class="form-fields">
-                <input type="number" name="flags.${moduleName}.improvedHearingDistance" placeholder="0" value="${appData.object.flags[moduleName]?.improvedHearingDistance}" />
+                <input type="number" name="flags.${moduleID}.improvedHearingDistance" placeholder="0" value="${appData.object.flags[moduleID]?.improvedHearingDistance}" />
             </div>
         </div>
     `);

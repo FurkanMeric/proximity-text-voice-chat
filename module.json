@@ -1,11 +1,30 @@
 {
-    "name": "proximity-text-chat",
+    "id": "proximity-text-chat",
     "title": "Proximity Text Chat",
     "description": "",
-    "author": "enso#0361",
+    "authors": [
+        {
+            "name": "enso",
+            "discord": "enso#0361"
+        }
+    ],
     "version": "1.0.0",
-    "minimumCoreVersion": "9",
-    "compatibleCoreVersion": "9",
+    "compatibility": {
+        "minimum": "11",
+        "verified": "11"
+    },
+    "relationships": {
+        "requires": [
+            {
+                "id": "lib-wrapper",
+                "type": "module",
+                "compatibility": {
+                    "minimum": "1",
+                    "verified": "1.12.7.1"
+                }
+            }
+        ]
+    },
     "esmodules": [
         "./scripts/proximity-text-chat.js"
     ],
