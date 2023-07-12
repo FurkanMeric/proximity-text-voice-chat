@@ -101,11 +101,6 @@ Hooks.once("init", () => {
     }, "WRAPPER");
 });
 
-Hooks.once("setup", () => {
-});
-
-Hooks.once("ready", () => {
-});
 
 Hooks.on("preCreateChatMessage", (message, data, options, userID) => {
     const oocTabActive = $(document).find(`nav.tabbedchatlog.tabs`).find(`a.item.ooc`).hasClass("active");
