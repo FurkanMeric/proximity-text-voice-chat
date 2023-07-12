@@ -105,11 +105,6 @@ Hooks.once("setup", () => {
 });
 
 Hooks.once("ready", () => {
-    // ViNo compatibility
-    if (game.modules.get("vino")?.active) {
-        vinoCreateChatMessage = Hooks._hooks.createChatMessage.find(f => f.name === "handleCreateChatMessage");
-        Hooks.off("createChatMessage", vinoCreateChatMessage);
-    }
 });
 
 Hooks.on("preCreateChatMessage", (message, data, options, userID) => {
@@ -172,8 +167,6 @@ Hooks.on("createChatMessage", (message, options, userID) => {
         // Use true message text for chat bubble
         messageText = message.data.content;
 
-        // ViNo compatibility
-        if (game.modules.get("vino")?.active) vinoCreateChatMessage.call(this, message);
     }
 
     // Manually create chat bubble
@@ -194,7 +187,6 @@ Hooks.on("chatCommandsReady", chatCommands => {
                     type: 2,
                 });
             });
-            //messageText = `<b>` + messageText + `</b>`; // clashes with ViNo compat
             return messageText;
         },
         shouldDisplayToChat: true,
@@ -224,7 +216,6 @@ Hooks.on("chatCommandsReady", chatCommands => {
                 });
             }
 
-            //messageText = `<i>` + messageText + `</i>`; // clashes with ViNo compat
             return messageText.replace(target, "");
         },
         shouldDisplayToChat: true,
