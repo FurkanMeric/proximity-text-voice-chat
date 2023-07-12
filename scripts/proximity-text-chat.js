@@ -63,7 +63,7 @@ Hooks.once("init", () => {
     });
 
     // Set up module socket
-    socket.on(`module.${moduleID}`, data => {
+    game.socket.on(`module.${moduleID}`, data => {
         const { action } = data;
 
         if (action === "showMessage") {
@@ -109,12 +109,12 @@ Hooks.once("ready", () => {
 
 Hooks.on("preCreateChatMessage", (message, data, options, userID) => {
     const oocTabActive = $(document).find(`nav.tabbedchatlog.tabs`).find(`a.item.ooc`).hasClass("active");
-    if (message.data.type === 1 || oocTabActive) return;
+    if (message.type === 1 || oocTabActive) return;
 
-    const speaker = [0,4,5].includes(message.data.type) ? canvas.tokens.controlled[0] : canvas.tokens.get(message.data.speaker.token);
+    const speaker = [0,4,5].includes(message.type) ? canvas.tokens.controlled[0] : canvas.tokens.get(message.speaker.token);
     if (!speaker) return;
 
-    if (!game.settings.get(moduleID, "hideRolls") && (message.data.type === 0 || message.data.type === 5)) return;
+    if (!game.settings.get(moduleID, "hideRolls") && (message.type === 0 || message.type === 5)) return;
 
     // Initiate hearMap in message flag
     const hearMap = {};
@@ -122,15 +122,15 @@ Hooks.on("preCreateChatMessage", (message, data, options, userID) => {
         if (u.isGM) return;
         hearMap[u.id] = false;
     });
-    hearMap[game.user.id] = true;
+    hearMap[game.user.id] = true;``
     const update = {
         [`flags.${moduleID}`]: {
             "users": hearMap
         }
     };
-    //if (message.data.type === 4) update[`flags.${moduleName}`].speaker = speaker.id;
-    if ([0,4,5].includes(message.data.type)) update[`flags.${moduleID}`].speaker = speaker.id;
-    message.data.update(update);
+    //if (message.type === 4) update[`flags.${moduleName}`].speaker = speaker.id;
+    if ([0,4,5].includes(message.type)) update[`flags.${moduleID}`].speaker = speaker.id;
+    message.updateSource(update);
 
     // Prevent automatic chat bubble creation; will be handled manually in createChatMessge hook
     options.chatBubble = false;
@@ -140,7 +140,7 @@ Hooks.on("preCreateChatMessage", (message, data, options, userID) => {
 Hooks.on("createChatMessage", (message, options, userID) => {
     const listener = canvas.tokens.controlled[0] || game.user.character?.getActiveTokens()[0];
     if (!listener) return;
-    const speakerID = message.data.type === 4 ? message.getFlag(moduleID, "speaker") : message.data.speaker.token;
+    const speakerID = message.type === 4 ? message.getFlag(moduleID, "speaker") : message.speaker.token;
     const speaker = canvas.tokens.get(speakerID);
     if (!speaker) return;
 
@@ -158,19 +158,19 @@ Hooks.on("createChatMessage", (message, options, userID) => {
         && processHideBySight
     ) {
         // Set current user to true in hearMap
-        socket.emit(`module.${moduleID}`, {
+        game.socket.emit(`module.${moduleID}`, {
             action: "showMessage",
             messageID: message.id,
             userID: game.user.id
         });
 
         // Use true message text for chat bubble
-        messageText = message.data.content;
+        messageText = message.content;
 
     }
 
     // Manually create chat bubble
-    if (message.data.type === 2) canvas.hud.bubbles.say(speaker, messageText);
+    if (message.type === 2) canvas.hud.bubbles.say(speaker, messageText);
 });
 
 // Register Chat Commands
@@ -180,7 +180,7 @@ Hooks.on("chatCommandsReady", chatCommands => {
         invokeOnCommand: (chatLog, messageText, chatData) => {
             Hooks.once("preCreateChatMessage", (message, data, options, userID) => {
                 // Flag chat message as a scream
-                message.data.update({
+                message.update({
                     [`flags.${moduleID}`]: {
                         isScream: true
                     },
@@ -202,7 +202,7 @@ Hooks.on("chatCommandsReady", chatCommands => {
             if (user) {
                 Hooks.once("preCreateChatMessage", (message, data, options, userID) => {
                     // Flag chat message as telepathy and udpate message to a whisper
-                    message.data.update({
+                    message.update({
                         [`flags.${moduleID}`]: {
                             telepathyTarget: user.id,
                             speaker: canvas.tokens.controlled[0].id
