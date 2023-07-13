@@ -135,6 +135,7 @@ Hooks.on("preCreateChatMessage", (message, data, options, userID) => {
 Hooks.on("createChatMessage", (message, options, userID) => {
     const listener = canvas.tokens.controlled[0] || game.user.character?.getActiveTokens()[0];
     if (!listener) return;
+    
     const speakerID = message.type === 4 ? message.getFlag(moduleID, "speaker") : message.speaker.token;
     const speaker = canvas.tokens.get(speakerID);
     if (!speaker) return;
