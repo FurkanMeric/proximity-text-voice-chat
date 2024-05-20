@@ -1,11 +1,11 @@
 {
-    "id": "proximity-text-chat",
-    "title": "Proximity Text Chat",
+    "id": "proximity-text-voice-chat",
+    "title": "Proximity Text and Voice Chat",
     "description": "",
     "authors": [
         {
-            "name": "enso",
-            "discord": "enso#0361"
+            "name": "radgenes",
+            "discord": "radgenes"
         }
     ],
     "version": "1.0.0",
@@ -36,7 +36,7 @@
         }
     ],
     "socket": true,
-    "url": "https://github.com/jessev14/proximity-text-chat",
-    "manifest": "https://github.com/jessev14/proximity-text-chat/releases/latest/download/module.json",
-    "download": "https://github.com/jessev14/proximity-text-chat/releases/download/1.0.0/PTC.zip"
+    "url": "https://github.com/FurkanMeric/proximity-text-voice-chat",
+    "manifest": "https://github.com/FurkanMeric/proximity-text-voice-chat/releases/latest/download/module.json",
+    "download": "https://github.com/FurkanMeric/proximity-text-voice-chat/releases/download/1.0.0/PTC.zip"
 }
